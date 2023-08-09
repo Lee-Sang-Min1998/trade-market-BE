@@ -1,0 +1,7 @@
+version: "3"
+services:
+  api-server:
+    image: "trademarket08/trade-market-api:latest"
+    ports:
+      - "80:8080"
+    restart: "always"
