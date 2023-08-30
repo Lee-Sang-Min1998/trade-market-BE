@@ -2,6 +2,8 @@ package TRADE_MARKET.trademarket.user.domain;
 
 import TRADE_MARKET.trademarket.global.util.BaseTimeEntity;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "USER")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User extends BaseTimeEntity {
 
 
@@ -16,6 +20,13 @@ public class User extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Long id;
+
+    @Column(name = "AUTH_ID")
+    private Long authId;
+
+    @Column(name = "authType")
+    @Enumerated(EnumType.STRING)
+    private AuthType authType;
 
     @Column(name = "NICKNAME", length = 20)
     private String nickname;
