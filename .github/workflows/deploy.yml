@@ -3,12 +3,12 @@ name: Aws Elastic Beanstalk Build
 on:
   push:
     branches:
-      - main
+      - develop
   pull_request:
     types:
       - closed
     branches:
-      - main
+      - develop
 
 permissions:
   contents: read
