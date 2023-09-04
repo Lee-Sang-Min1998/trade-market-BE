@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByAuthIdAndAuthType(Long authId, AuthType authType);
+    Optional<User> findByAuthIdAndAuthType(String authId, AuthType authType);
 }
