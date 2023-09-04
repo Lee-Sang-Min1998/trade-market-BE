@@ -7,15 +7,17 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class NaverUserInfoDto {
 
-    @JsonProperty("response/id")
-    private String id;
+    @JsonProperty("resultcode")
+    private String resultCode;
 
-    @JsonProperty("response/nickname")
-    private String nickname;
+    @JsonProperty("message")
+    private String message;
 
-    @JsonProperty("response/profile_image")
-    private String profileImage;
+
+    @JsonProperty("response")
+    private NaverResponse naverResponse;
+
+
 }
