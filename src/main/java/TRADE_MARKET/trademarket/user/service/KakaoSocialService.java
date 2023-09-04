@@ -2,8 +2,6 @@ package TRADE_MARKET.trademarket.user.service;
 
 
 import TRADE_MARKET.trademarket.global.auth.domain.CustomUserDetails;
-import TRADE_MARKET.trademarket.global.auth.service.JwtTokenProvider;
-import TRADE_MARKET.trademarket.global.auth.service.CustomUserDetailsService;
 import TRADE_MARKET.trademarket.global.exception.DataNotFoundException;
 import TRADE_MARKET.trademarket.global.exception.ErrorCode;
 import TRADE_MARKET.trademarket.user.domain.AuthType;
@@ -16,11 +14,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -37,6 +35,9 @@ public class KakaoSocialService {
     @Value("${kakao.redirect.url}")
     private String redirectUrl;
 
+    @Value("${kakao.client.secret}")
+    private String clientSecret;
+
 
     private final String contentType = "application/x-www-form-urlencoded;charset=utf-8";
 
@@ -44,27 +45,26 @@ public class KakaoSocialService {
 
     private final UserService userService;
 
-    private final CustomUserDetailsService customUserDetailsService;
-
-    private final JwtTokenProvider jwtTokenProvider;
-
     public String getAccessTokenFromKakaoServer(String authorizationCode) {
 
         MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
-        KakaoAccessTokenDto dto;
 
         requestBody.add("grant_type", "authorization_code");
         requestBody.add("client_id", clientId);
         requestBody.add("redirect_uri", redirectUrl);
         requestBody.add("code", authorizationCode);
+        requestBody.add("client_secret", clientSecret);
 
         WebClient webclient = WebClient.builder()
-            .baseUrl("https://kauth.kakao.com/oauth/token")
+            .baseUrl("https://kauth.kakao.com")
             .defaultHeader(HttpHeaders.CONTENT_TYPE, contentType)
             .build();
 
         KakaoAccessTokenDto responseToken = webclient.post()
-            .body(BodyInserters.fromMultipartData(requestBody))
+            .uri(uriBuilder -> uriBuilder
+                .path("/oauth/token")
+                .queryParams(requestBody)
+                .build())
             .exchangeToMono(response -> {
                 if (response.statusCode().equals(HttpStatus.OK)) {
                     return response.bodyToMono(KakaoAccessTokenDto.class);
@@ -91,6 +91,7 @@ public class KakaoSocialService {
             .build();
 
         KakaoUserInfoDto userInfo = webclient.post()
+            .accept(MediaType.APPLICATION_JSON)
             .exchangeToMono(response -> {
                 if (response.statusCode().equals(HttpStatus.OK)) {
                     return response.bodyToMono(KakaoUserInfoDto.class);
@@ -105,7 +106,7 @@ public class KakaoSocialService {
         }
 
         try {
-            User findUser = userRepository.findByAuthIdAndAuthType(userInfo.getAuthId(),
+            User findUser = userRepository.findByAuthIdAndAuthType(String.valueOf(userInfo.getAuthId()),
                     AuthType.KAKAO)
                 .orElseThrow(() -> new DataNotFoundException(ErrorCode.NOT_FOUND));
             return CustomUserDetails.createUserDetails(findUser);
@@ -113,8 +114,9 @@ public class KakaoSocialService {
         } catch (DataNotFoundException e) {
             //회원 가입 후 UserDetails 반환
             return CustomUserDetails.createUserDetails(
-                userService.register(userInfo.getAuthId(), userInfo.getName(),
-                    userInfo.getProfile(),
+                userService.register(String.valueOf(userInfo.getAuthId()),
+                    userInfo.getKakaoAccount().getProfile().getNickname(),
+                    userInfo.getKakaoAccount().getProfile().getProfileImage(),
                     AuthType.KAKAO));
         }
 
