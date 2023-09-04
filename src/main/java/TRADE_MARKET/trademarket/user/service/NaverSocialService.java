@@ -39,20 +39,28 @@ public class NaverSocialService {
         requestBody.add("state", state);
 
         WebClient webclient = WebClient.builder()
-            .baseUrl("https://nid.naver.com/oauth2.0/token")
+            .baseUrl("https://nid.naver.com")
             .defaultHeader(HttpHeaders.CONTENT_TYPE, contentType)
             .build();
 
-        NaverAccessTokenDto response = webclient.post()
-            .body(BodyInserters.fromMultipartData(requestBody))
-            .retrieve()
-            .bodyToMono(NaverAccessTokenDto.class)
-            .block();
+        NaverAccessTokenDto responseToken = webclient.post()
+            .uri(uriBuilder -> uriBuilder
+                .path("/oauth2.0/token")
+                .queryParams(requestBody)
+                .build())
+            .exchangeToMono(response -> {
+                if (response.statusCode().equals(HttpStatus.OK)) {
+                    return response.bodyToMono(NaverAccessTokenDto.class);
+                } else {
+                    throw new WebClientResponseException(500, "NAVER_INTERNAL_SERVER_ERROR", null,
+                        null, null);
+                }
+            }).block();
 
-        if (response.getAccessToken() == null) {
+        if (responseToken == null) {
             throw new DataNotFoundException(ErrorCode.NOT_FOUND);
         } else {
-            return response.getAccessToken();
+            return responseToken.getAccessToken();
         }
     }
 
