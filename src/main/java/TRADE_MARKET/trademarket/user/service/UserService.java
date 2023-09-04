@@ -18,7 +18,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public User register(Long authId, String nickname, String profileImage,
+    public User register(String authId, String nickname, String profileImage,
         AuthType authType) {
 
         userRepository.save(
