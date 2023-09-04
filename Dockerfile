@@ -6,15 +6,19 @@ COPY gradle gradle
 
 COPY gradlew .
 
+COPY gradlew.bat .
+
 COPY build.gradle build.gradle
 
 COPY settings.gradle .
 
 COPY src src
 
+RUN dos2unix ./gradlew
+
 RUN chmod +x ./gradlew
 
-RUN ./gradlew clean build
+RUN ./gradlew clean build --warning-mode all
 
 FROM eclipse-temurin:17-jdk-alpine
 
