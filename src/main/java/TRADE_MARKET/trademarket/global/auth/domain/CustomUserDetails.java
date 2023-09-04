@@ -16,7 +16,7 @@ public class CustomUserDetails implements UserDetails {
     private Long id;
 
 
-    private Long authId;
+    private String authId;
 
 
     private AuthType authType;
