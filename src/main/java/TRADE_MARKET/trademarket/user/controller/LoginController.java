@@ -5,7 +5,9 @@ import TRADE_MARKET.trademarket.global.auth.service.JwtTokenProvider;
 import TRADE_MARKET.trademarket.global.auth.service.AuthService;
 import TRADE_MARKET.trademarket.global.dto.ApiResponse;
 import TRADE_MARKET.trademarket.user.service.KakaoSocialService;
+import TRADE_MARKET.trademarket.user.service.NaverSocialService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoginController {
 
     private final KakaoSocialService kakaoSocialService;
+
+    private final NaverSocialService naverSocialService;
 
     private final AuthService authService;
 
@@ -43,6 +47,26 @@ public class LoginController {
             .body(response);
 
 
+    }
+
+    @PostMapping("/login/naver")
+    public ResponseEntity<ApiResponse<Void>> naverLogin(
+        @RequestParam("authorizationCode") String authorizationCode,
+        @RequestParam("state") String state) {
+
+        CustomUserDetails userDetails = naverSocialService.getUserInfoFromNaverServer(
+            naverSocialService.getAccessTokenFromNaverServer(authorizationCode, state));
+        authService.setSecurityContext(authService.getAuthentication(userDetails));
+
+        String accessToken = jwtTokenProvider.generateToken(userDetails);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Authorization", "Bearer " + accessToken);
+        ApiResponse<Void> response = new ApiResponse<>(200, "로그인 성공");
+
+        return ResponseEntity.ok()
+            .headers(httpHeaders)
+            .body(response);
     }
 
 }
