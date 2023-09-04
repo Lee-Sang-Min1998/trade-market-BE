@@ -8,12 +8,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class KakaoUserInfoDto {
+public class KakaoAccount {
 
-    @JsonProperty("id")
-    private Long authId;
-
-    @JsonProperty("kakao_account")
-    private KakaoAccount kakaoAccount;
-
+    @JsonProperty("profile")
+    private Profile profile;
 }
