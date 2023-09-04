@@ -40,19 +40,27 @@ public class GoogleSocialService {
         requestBody.add("redirect_uri", redirectUrl);
 
         WebClient webclient = WebClient.builder()
-            .baseUrl("https://oauth2.googleapis.com/token")
+            .baseUrl("https://oauth2.googleapis.com")
             .build();
 
-        GoogleAccessTokenDto response = webclient.post()
-            .body(BodyInserters.fromMultipartData(requestBody))
-            .retrieve()
-            .bodyToMono(GoogleAccessTokenDto.class)
-            .block();
+        GoogleAccessTokenDto responseToken = webclient.post()
+            .uri(uriBuilder -> uriBuilder
+                .path("/token")
+                .queryParams(requestBody)
+                .build())
+            .exchangeToMono(response -> {
+                if (response.statusCode().equals(HttpStatus.OK)) {
+                    return response.bodyToMono(GoogleAccessTokenDto.class);
+                } else {
+                    throw new WebClientResponseException(500, "GOOGLE_INTERNAL_SERVER_ERROR", null,
+                        null, null);
+                }
+            }).block();
 
-        if (response.getAccessToken() == null) {
+        if (responseToken == null) {
             throw new DataNotFoundException(ErrorCode.NOT_FOUND);
         } else {
-            return response.getAccessToken();
+            return responseToken.getAccessToken();
         }
 
     }
