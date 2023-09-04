@@ -35,16 +35,4 @@ public class CustomUserDetailsService implements UserDetailsService {
             .build();
     }
 
-    public UserDetails loadUserByAuthIdAndAuthType(Long authId, AuthType authType) {
-
-        User findUser = userRepository.findByAuthIdAndAuthType(authId, authType)
-            .orElseThrow(() -> new DataNotFoundException(ErrorCode.NOT_FOUND));
-
-        return CustomUserDetails.builder()
-            .id(findUser.getId())
-            .authId(findUser.getAuthId())
-            .authType(findUser.getAuthType())
-            .build();
-    }
-
 }
